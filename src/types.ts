@@ -20,6 +20,14 @@ export interface Recommendation {
   year: number;
   director: string;
   matchScore: number;
+  scoreBreakdown?: {
+    genreScore: number;
+    themeScore: number;
+    directorScore: number;
+    behavioralScore: number;
+    noveltyScore: number;
+    contextScore: number;
+  };
   genres: string[];
   posterDescription: string;
   backdropGradient: string;

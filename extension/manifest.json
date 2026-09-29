@@ -1,0 +1,57 @@
+{
+  "manifest_version": 3,
+  "name": "Plotted - AI Film Taste & Browser History Recommender",
+  "version": "1.1.0",
+  "description": "Silently analyzes your YouTube watch history, YouTube Shorts, Google movie searches, and streaming player sessions to deliver hyper-personalized movie recommendations.",
+  "permissions": [
+    "tabs",
+    "history",
+    "storage",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "*://*.youtube.com/*",
+    "*://*.google.com/*",
+    "*://*.duckduckgo.com/*",
+    "*://*.bing.com/*",
+    "*://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["content/youtube.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "*://*.google.com/search*",
+        "*://*.duckduckgo.com/*",
+        "*://*.bing.com/search*"
+      ],
+      "js": ["content/search.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/streaming.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

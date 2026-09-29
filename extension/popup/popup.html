@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Plotted - Film Taste Recommender</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="header">
+    <div class="logo">
+      <span class="logo-icon">🎬</span>
+      <span class="logo-text">PLOTTED</span>
+    </div>
+    <span class="status-badge live">● Active Monitor</span>
+  </div>
+
+  <div class="taste-card">
+    <div class="archetype-label">YOUR TASTE ARCHETYPE</div>
+    <div id="archetype-name" class="archetype-title">The Existential Puzzle-Solver</div>
+    <div id="archetype-desc" class="archetype-desc">Capturing YouTube Shorts, video essays, searches, and streaming player sessions.</div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box">
+      <div id="shorts-count" class="stat-num">0</div>
+      <div class="stat-label">Shorts</div>
+    </div>
+    <div class="stat-box">
+      <div id="yt-count" class="stat-num">0</div>
+      <div class="stat-label">YouTube</div>
+    </div>
+    <div class="stat-box">
+      <div id="search-count" class="stat-num">0</div>
+      <div class="stat-label">Searches</div>
+    </div>
+    <div class="stat-box accent">
+      <div id="stream-count" class="stat-num">0</div>
+      <div class="stat-label">Streams</div>
+    </div>
+  </div>
+
+  <div class="section-title">TOP MATCH RECOMMENDATION</div>
+  <div id="recs-container" class="recs-list">
+    <div class="rec-item">
+      <div class="rec-header">
+        <span class="rec-title">Incendies (2010)</span>
+        <span class="rec-score">98% Match</span>
+      </div>
+      <div class="rec-reason">Matched your Villeneuve tension video essays and plot twist inquiries.</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button id="open-dashboard" class="btn primary">Open Full Plotted Companion</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

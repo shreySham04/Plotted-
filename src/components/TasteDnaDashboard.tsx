@@ -312,6 +312,41 @@ export const TasteDnaDashboard: React.FC<TasteDnaDashboardProps> = ({
               </p>
             </div>
 
+            {selectedMovie.scoreBreakdown && (
+              <div className="rounded-xl bg-black/50 border border-white/10 p-3 space-y-2">
+                <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400 uppercase font-bold">
+                  <span>Mathematical Ranking Vector</span>
+                  <span className="text-indigo-400">Formula Breakdown</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[10px] font-mono">
+                  <div className="p-1.5 rounded bg-neutral-900 border border-white/5">
+                    <span className="text-neutral-500 block">Genre (30%)</span>
+                    <span className="text-neutral-200 font-bold">{selectedMovie.scoreBreakdown.genreScore}%</span>
+                  </div>
+                  <div className="p-1.5 rounded bg-neutral-900 border border-white/5">
+                    <span className="text-neutral-500 block">Theme (20%)</span>
+                    <span className="text-neutral-200 font-bold">{selectedMovie.scoreBreakdown.themeScore}%</span>
+                  </div>
+                  <div className="p-1.5 rounded bg-neutral-900 border border-white/5">
+                    <span className="text-neutral-500 block">Director (15%)</span>
+                    <span className="text-neutral-200 font-bold">{selectedMovie.scoreBreakdown.directorScore}%</span>
+                  </div>
+                  <div className="p-1.5 rounded bg-neutral-900 border border-white/5">
+                    <span className="text-neutral-500 block">Behavior (15%)</span>
+                    <span className="text-neutral-200 font-bold">{selectedMovie.scoreBreakdown.behavioralScore}%</span>
+                  </div>
+                  <div className="p-1.5 rounded bg-neutral-900 border border-white/5">
+                    <span className="text-neutral-500 block">Novelty (10%)</span>
+                    <span className="text-neutral-200 font-bold">{selectedMovie.scoreBreakdown.noveltyScore}%</span>
+                  </div>
+                  <div className="p-1.5 rounded bg-neutral-900 border border-white/5">
+                    <span className="text-neutral-500 block">Context (10%)</span>
+                    <span className="text-neutral-200 font-bold">{selectedMovie.scoreBreakdown.contextScore}%</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div>
               <span className="text-[10px] font-mono text-neutral-400 block mb-1.5">STREAMING AVAILABILITY:</span>
               <div className="flex flex-wrap gap-1.5">

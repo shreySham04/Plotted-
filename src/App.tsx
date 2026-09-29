@@ -6,6 +6,7 @@ import { TasteDnaDashboard } from './components/TasteDnaDashboard';
 import { HistorySignalsView } from './components/HistorySignalsView';
 import { ExtensionHubView } from './components/ExtensionHubView';
 import { CaptureModal } from './components/CaptureModal';
+import { AlertCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 const STORAGE_KEY_HISTORY = 'plotted_app_history';
 const STORAGE_KEY_TASTE = 'plotted_app_taste';
@@ -51,6 +52,29 @@ export default function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGeneratingRecs, setIsGeneratingRecs] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [isBackendConnected, setIsBackendConnected] = useState<boolean>(true);
+
+  // Synchronize with Centralized Backend Event Store on mount
+  useEffect(() => {
+    fetch('/api/events')
+      .then(res => res.json())
+      .then(data => {
+        if (data.events && Array.isArray(data.events) && data.events.length > 0) {
+          // Merge server events with local items without duplicates
+          setHistoryItems(prev => {
+            const existingIds = new Set(prev.map(i => i.id));
+            const newFromServer = data.events.filter((e: HistoryItem) => !existingIds.has(e.id));
+            return [...newFromServer, ...prev];
+          });
+          setIsBackendConnected(true);
+        }
+      })
+      .catch(err => {
+        console.warn('[Plotted] Backend events endpoint offline or starting up:', err);
+        setIsBackendConnected(false);
+      });
+  }, []);
 
   // Sync to localStorage
   useEffect(() => {
@@ -84,10 +108,11 @@ export default function App() {
     }, 3500);
   };
 
-  // Re-analyze Taste DNA via server-side Gemini
+  // Re-analyze Taste DNA via server-side Gemini & mathematical ranking
   const handleRefreshTaste = async () => {
     setIsAnalyzing(true);
-    showToast('Analyzing your YouTube Shorts, searches, and stream locker history...');
+    setApiError(null);
+    showToast('Computing feature vectors & mathematical ranking...');
 
     try {
       const response = await fetch('/api/analyze-taste', {
@@ -96,13 +121,17 @@ export default function App() {
         body: JSON.stringify({ historyItems }),
       });
 
-      if (!response.ok) throw new Error('Failed to analyze taste');
+      if (!response.ok) {
+        const errJson = await response.json().catch(() => null);
+        throw new Error(errJson?.message || `Server returned ${response.status}`);
+      }
+
       const data: TasteProfile = await response.json();
       setTasteProfile(data);
-      showToast('Taste DNA & personalized recommendations updated!');
-    } catch (err) {
+      showToast('Taste DNA & recommendations synchronized!');
+    } catch (err: any) {
       console.error('Error refreshing taste:', err);
-      showToast('Taste profile updated.');
+      setApiError(err.message || 'Taste analysis request failed');
     } finally {
       setIsAnalyzing(false);
     }
@@ -111,7 +140,8 @@ export default function App() {
   // Live Mood Recommendation Generator
   const handleLiveMoodRecommend = async (mood: string, customPrompt?: string) => {
     setIsGeneratingRecs(true);
-    showToast(`Curating recommendations for "${customPrompt || mood}"...`);
+    setApiError(null);
+    showToast(`Ranking candidates for "${customPrompt || mood}"...`);
 
     try {
       const response = await fetch('/api/recommend-live', {
@@ -124,7 +154,11 @@ export default function App() {
         }),
       });
 
-      if (!response.ok) throw new Error('Live recommendation failed');
+      if (!response.ok) {
+        const errJson = await response.json().catch(() => null);
+        throw new Error(errJson?.message || `Server returned ${response.status}`);
+      }
+
       const data = await response.json();
 
       if (data.recommendations && data.recommendations.length > 0) {
@@ -132,33 +166,52 @@ export default function App() {
           ...prev,
           recommendations: [...data.recommendations, ...prev.recommendations.filter(r => !data.recommendations.some((newR: Recommendation) => newR.title === r.title))]
         }));
-        showToast(`Added ${data.recommendations.length} new curated films!`);
+        showToast(`Added ${data.recommendations.length} scored recommendations!`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to generate live recommendations:', err);
-      showToast('Could not reach recommendation engine.');
+      setApiError(err.message || 'Live recommendation engine failed');
     } finally {
       setIsGeneratingRecs(false);
     }
   };
 
-  // History manipulations
-  const handleAddHistoryItem = (item: Omit<HistoryItem, 'id'>) => {
+  // Unified Event Ingestion (Pushes to state & backend ingestion API)
+  const handleAddHistoryItem = async (item: Omit<HistoryItem, 'id'>) => {
     const newItem: HistoryItem = {
       ...item,
-      id: 'evt-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4)
+      id: 'evt-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6)
     };
+
     setHistoryItems(prev => [newItem, ...prev]);
     showToast(`Captured: "${item.title.substring(0, 32)}..."`);
+
+    // Synchronize to backend event ingestion API
+    try {
+      await fetch('/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ events: [newItem] })
+      });
+      setIsBackendConnected(true);
+    } catch (e) {
+      console.warn('[Plotted] Backend ingestion offline, saved in local store:', e);
+      setIsBackendConnected(false);
+    }
   };
 
   const handleRemoveHistoryItem = (id: string) => {
     setHistoryItems(prev => prev.filter(i => i.id !== id));
   };
 
-  const handleClearHistory = () => {
+  const handleClearHistory = async () => {
     setHistoryItems([]);
     showToast('Cleared watch activity.');
+    try {
+      await fetch('/api/events', { method: 'DELETE' });
+    } catch (e) {
+      console.error('Error clearing backend events:', e);
+    }
   };
 
   // Watchlist
@@ -188,7 +241,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#07080b] text-[#f3f4f6] selection:bg-indigo-600 selection:text-white flex flex-col font-sans">
       
-      {/* Clean Header */}
+      {/* Header */}
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -203,6 +256,24 @@ export default function App() {
       {/* Main Content Area */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 pt-6">
         
+        {/* Real API Error Notification (No masked errors) */}
+        {apiError && (
+          <div className="mb-6 p-4 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-rose-300 flex items-center justify-between gap-3 text-xs font-mono animate-fade-in">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+              <span><strong>Backend Analysis Error:</strong> {apiError}. Existing taste profile preserved.</span>
+            </div>
+            <button
+              onClick={handleRefreshTaste}
+              disabled={isAnalyzing}
+              className="px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold flex items-center gap-1 shrink-0"
+            >
+              <RefreshCw className={`w-3 h-3 ${isAnalyzing ? 'animate-spin' : ''}`} />
+              <span>Retry</span>
+            </button>
+          </div>
+        )}
+
         {activeTab === 'recs' && (
           <TasteDnaDashboard
             tasteProfile={tasteProfile}
@@ -252,11 +323,14 @@ export default function App() {
         </div>
       )}
 
-      {/* Clean Footer */}
+      {/* Clean Footer with Real Sync Indicator */}
       <footer className="border-t border-white/5 py-4 px-4 text-center text-xs text-neutral-500 font-mono">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <span className="font-semibold text-neutral-400 font-['Cinzel'] tracking-wide">PLOTTED</span>
-          <span>Captures YouTube, Shorts, Searches & Stream Lockers</span>
+          <div className="flex items-center gap-2 text-[11px]">
+            <span className={`w-2 h-2 rounded-full ${isBackendConnected ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+            <span>Unified Event Bus: {isBackendConnected ? 'Connected & Synchronized' : 'Local Fallback'}</span>
+          </div>
         </div>
       </footer>
 
