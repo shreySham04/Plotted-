@@ -128,6 +128,14 @@ export const CaptureModal: React.FC<CaptureModalProps> = ({
           </button>
         </div>
 
+        {/* Context Banner */}
+        <div className="p-3 rounded-xl bg-indigo-950/40 border border-indigo-500/20 text-xs text-neutral-300 flex items-start gap-2.5">
+          <Sparkles className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+          <div className="text-[11px] leading-relaxed">
+            <span className="font-semibold text-white">No URLs required!</span> When you install the Chrome Extension, it captures your YouTube watch history, Shorts, and searches <span className="text-emerald-400 font-medium">100% automatically in the background</span>. Use this manual logger just to test recommendations by typing any movie, video title, or search.
+          </div>
+        </div>
+
         {/* Tab Selection */}
         <div className="grid grid-cols-4 gap-1 p-1 bg-neutral-900 rounded-xl border border-white/5 text-xs font-semibold">
           <button
@@ -179,14 +187,14 @@ export const CaptureModal: React.FC<CaptureModalProps> = ({
             }`}
           >
             <Film className="w-3.5 h-3.5" />
-            <span>Stream Site</span>
+            <span>Movie Site</span>
           </button>
         </div>
 
         {/* Quick Presets */}
         <div className="space-y-1.5">
           <span className="text-[10px] font-mono font-bold text-neutral-400 uppercase">
-            Quick 1-Click Add Presets:
+            Quick 1-Click Test Presets:
           </span>
           <div className="space-y-1">
             {quickPresets.map((qp, idx) => (
@@ -196,7 +204,7 @@ export const CaptureModal: React.FC<CaptureModalProps> = ({
                 onClick={() => {
                   setActiveTab(qp.tab);
                   setTitle(qp.title);
-                  setUrl(qp.url || '');
+                  setUrl('');
                   setChannel(qp.channel || '');
                 }}
                 className="w-full text-left text-[11px] px-2.5 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-white/5 transition-all truncate"
@@ -210,11 +218,11 @@ export const CaptureModal: React.FC<CaptureModalProps> = ({
         {/* Input Form */}
         <form onSubmit={handleSubmit} className="space-y-3 pt-2 border-t border-white/5">
           <div>
-            <label className="block text-[11px] font-mono text-neutral-400 mb-1">
-              {activeTab === 'shorts' && 'YouTube Short Title or Video Reel Name'}
-              {activeTab === 'youtube' && 'YouTube Video Title / Essay'}
-              {activeTab === 'search' && 'Google / Search Query'}
-              {activeTab === 'pirate' && 'Stream Site Page Title (e.g. "Watch Movie Free HD")'}
+            <label className="block text-[11px] font-mono text-neutral-300 mb-1">
+              {activeTab === 'shorts' && 'Short Topic or Title (e.g. "Oppenheimer audio design" or "plot twists")'}
+              {activeTab === 'youtube' && 'Video Title or Film Subject (e.g. "Denis Villeneuve Dune breakdown")'}
+              {activeTab === 'search' && 'Search Query (e.g. "movies like shutter island with plot twist")'}
+              {activeTab === 'pirate' && 'Movie Watched (e.g. "Oldboy (2003)" or "Dune Part Two")'}
             </label>
             <input
               type="text"
@@ -222,46 +230,26 @@ export const CaptureModal: React.FC<CaptureModalProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={
-                activeTab === 'shorts' ? 'e.g. The genius of Cillian Murphy in Oppenheimer #shorts' :
+                activeTab === 'shorts' ? 'e.g. Why Oppenheimer explosion had 25s dead silence #shorts' :
                 activeTab === 'youtube' ? 'e.g. David Fincher Cinematography breakdown' :
-                activeTab === 'search' ? 'e.g. movies with shocking plot twist reddit' :
-                'e.g. Watch Dune Part 2 Free 1080p | Fmovies'
+                activeTab === 'search' ? 'e.g. psychological thrillers like Prisoners' :
+                'e.g. Watched Dune Part 2 HD Free'
               }
-              className="w-full bg-neutral-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500 font-sans"
+              className="w-full bg-neutral-900 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500 font-sans"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[11px] font-mono text-neutral-400 mb-1">
-                URL (Optional)
-              </label>
-              <input
-                type="text"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder={
-                  activeTab === 'shorts' ? 'https://youtube.com/shorts/...' :
-                  activeTab === 'youtube' ? 'https://youtube.com/watch?v=...' :
-                  activeTab === 'search' ? 'https://google.com/search?q=...' :
-                  'https://fmovies.to/watch-...'
-                }
-                className="w-full bg-neutral-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500 font-sans"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-mono text-neutral-400 mb-1">
-                {activeTab === 'search' ? 'Search Engine' : 'Creator / Platform'} (Optional)
-              </label>
-              <input
-                type="text"
-                value={channel}
-                onChange={(e) => setChannel(e.target.value)}
-                placeholder={activeTab === 'search' ? 'Google' : 'e.g. CinemaEdits / Fmovies'}
-                className="w-full bg-neutral-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500 font-sans"
-              />
-            </div>
+          <div>
+            <label className="block text-[11px] font-mono text-neutral-400 mb-1">
+              {activeTab === 'search' ? 'Search Engine (Optional)' : 'Channel or Source Name (Optional)'}
+            </label>
+            <input
+              type="text"
+              value={channel}
+              onChange={(e) => setChannel(e.target.value)}
+              placeholder={activeTab === 'search' ? 'Google' : 'e.g. CinemaEdits, Thomas Flight, or Fmovies'}
+              className="w-full bg-neutral-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500 font-sans"
+            />
           </div>
 
           <div className="pt-3 flex items-center justify-end gap-2">
