@@ -71,10 +71,20 @@ function handleNewWatchEvent(event) {
   });
 }
 
+// Helper to get active API Base URL
+async function getApiBaseUrl() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(['plotted_api_url'], (res) => {
+      resolve(res.plotted_api_url || 'http://localhost:3000');
+    });
+  });
+}
+
 // Push event to Backend Event Ingestion API (/api/events)
 async function sendEventToBackend(event) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/events`, {
+    const baseUrl = await getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/api/events`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ events: [event] })
@@ -90,13 +100,14 @@ async function sendEventToBackend(event) {
 
 // Bulk sync local events with backend
 async function syncEventsWithBackend() {
+  const baseUrl = await getApiBaseUrl();
   return new Promise((resolve) => {
     chrome.storage.local.get([TASTE_LOG_KEY], async (res) => {
       const list = res[TASTE_LOG_KEY] || [];
-      if (list.length === 0) return resolve({ synced: 0 });
+      if (list.length === 0) return resolve({ success: true, count: 0 });
 
       try {
-        const response = await fetch(`${API_BASE_URL}/api/events`, {
+        const response = await fetch(`${baseUrl}/api/events`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ events: list })

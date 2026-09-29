@@ -61,7 +61,7 @@ export const HistorySignalsView: React.FC<HistorySignalsViewProps> = ({
             </span>
           </div>
           <p className="text-xs text-neutral-400 mt-1">
-            Plotted listens for YouTube videos, YouTube Shorts, Google searches, and streaming lockers to shape your recommendations.
+            Plotted detects streaming-page and media-player signals, YouTube Shorts, video essays, and search queries using content-script inspection to shape your recommendations.
           </p>
         </div>
 

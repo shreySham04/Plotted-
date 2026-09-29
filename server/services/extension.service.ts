@@ -32,11 +32,18 @@ export class ExtensionService {
   /**
    * Generates a ready-to-unzip bundle from the actual extension directory
    */
-  static async generateZipBuffer(): Promise<Buffer> {
+  static async generateZipBuffer(activeHostUrl?: string): Promise<Buffer> {
     const zip = new JSZip();
     const files = this.getFiles();
+    const targetUrl = activeHostUrl || process.env.APP_URL || 'http://localhost:3000';
 
-    for (const [filename, content] of Object.entries(files)) {
+    for (let [filename, content] of Object.entries(files)) {
+      if (filename === 'background.js' && targetUrl) {
+        content = content.replace("const API_BASE_URL = 'http://localhost:3000';", `const API_BASE_URL = '${targetUrl}';`);
+      }
+      if (filename === 'popup/popup.html' && targetUrl) {
+        content = content.replace('placeholder="http://localhost:3000"', `placeholder="${targetUrl}" value="${targetUrl}"`);
+      }
       zip.file(filename, content);
     }
 

@@ -23,10 +23,66 @@ export const AnalyzeTasteSchema = z.object({
   historyItems: z.array(EventSchema).max(500)
 });
 
+export const GenreSchema = z.object({
+  name: z.string(),
+  percentage: z.number()
+});
+
+export const TasteDnaSchema = z.object({
+  genres: z.array(GenreSchema),
+  themes: z.array(z.string()),
+  directors: z.array(z.string()),
+  pacingPreference: z.string().optional(),
+  visualStyle: z.string().optional()
+});
+
+export const ScoreBreakdownSchema = z.object({
+  genreScore: z.number(),
+  themeScore: z.number(),
+  directorScore: z.number(),
+  behavioralScore: z.number(),
+  noveltyScore: z.number(),
+  contextScore: z.number()
+}).optional();
+
+export const RecommendationSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  year: z.number(),
+  director: z.string(),
+  matchScore: z.number(),
+  scoreBreakdown: ScoreBreakdownSchema,
+  genres: z.array(z.string()),
+  posterDescription: z.string().optional(),
+  backdropGradient: z.string().optional(),
+  overview: z.string(),
+  whyItMatched: z.string(),
+  triggerSignals: z.array(z.string()),
+  mood: z.string(),
+  rating: z.string(),
+  runtime: z.string(),
+  whereToWatch: z.array(z.string()),
+  isUndergroundGem: z.boolean()
+});
+
+export const TasteProfileSchema = z.object({
+  tasteArchetype: z.string(),
+  archetypeDescription: z.string(),
+  tasteDna: TasteDnaSchema,
+  capturedSignalsSummary: z.object({
+    totalEvents: z.number(),
+    youtubeHighlights: z.array(z.string()),
+    searchHighlights: z.array(z.string()),
+    pirateStreamHighlights: z.array(z.string()),
+    hiddenAffinitiesFound: z.string()
+  }).optional(),
+  recommendations: z.array(RecommendationSchema)
+});
+
 export const RecommendLiveSchema = z.object({
   mood: z.string().max(100).optional(),
   customPrompt: z.string().max(500).optional(),
-  tasteProfile: z.any().optional()
+  tasteProfile: TasteProfileSchema.optional()
 });
 
 export const DetectStreamSchema = z.object({

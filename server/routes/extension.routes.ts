@@ -21,9 +21,12 @@ router.get('/files', (_req: Request, res: Response) => {
  * GET /api/extension/download-zip
  * Packages the actual extension/ directory into a downloadable ZIP archive
  */
-router.get('/download-zip', async (_req: Request, res: Response) => {
+router.get('/download-zip', async (req: Request, res: Response) => {
   try {
-    const zipBuffer = await ExtensionService.generateZipBuffer();
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+    const host = req.get('host');
+    const currentHostUrl = host ? `${protocol}://${host}` : undefined;
+    const zipBuffer = await ExtensionService.generateZipBuffer(currentHostUrl);
     res.setHeader('Content-Type', 'application/zip');
     res.setHeader('Content-Disposition', 'attachment; filename="plotted-extension.zip"');
     res.send(zipBuffer);

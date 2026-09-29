@@ -11,7 +11,24 @@
       <span class="logo-icon">🎬</span>
       <span class="logo-text">PLOTTED</span>
     </div>
-    <span class="status-badge live">● Active Monitor</span>
+    <div class="header-actions">
+      <span class="status-badge live">● Active Monitor</span>
+      <button id="toggle-settings" class="icon-btn" title="API Settings">⚙️</button>
+    </div>
+  </div>
+
+  <!-- Collapsible Settings & Sync Drawer -->
+  <div id="settings-drawer" class="settings-drawer hidden">
+    <div class="settings-title">SYNC & API CONFIGURATION</div>
+    <div class="input-group">
+      <label for="api-url-input">Backend API URL:</label>
+      <input type="text" id="api-url-input" placeholder="http://localhost:3000" />
+    </div>
+    <div class="settings-buttons">
+      <button id="save-api-url" class="btn small">Save</button>
+      <button id="sync-now-btn" class="btn small primary">Sync Now</button>
+    </div>
+    <div id="sync-status" class="sync-status">Ready</div>
   </div>
 
   <div class="taste-card">
@@ -41,13 +58,7 @@
 
   <div class="section-title">TOP MATCH RECOMMENDATION</div>
   <div id="recs-container" class="recs-list">
-    <div class="rec-item">
-      <div class="rec-header">
-        <span class="rec-title">Incendies (2010)</span>
-        <span class="rec-score">98% Match</span>
-      </div>
-      <div class="rec-reason">Matched your Villeneuve tension video essays and plot twist inquiries.</div>
-    </div>
+    <!-- Populated safely via DOM APIs -->
   </div>
 
   <div class="footer">

@@ -55,23 +55,21 @@ export default function App() {
   const [apiError, setApiError] = useState<string | null>(null);
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(true);
 
-  // Synchronize with Centralized Backend Event Store on mount
+  // Fetch Authoritative Event Bus on Mount
   useEffect(() => {
     fetch('/api/events')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to reach backend event bus');
+        return res.json();
+      })
       .then(data => {
-        if (data.events && Array.isArray(data.events) && data.events.length > 0) {
-          // Merge server events with local items without duplicates
-          setHistoryItems(prev => {
-            const existingIds = new Set(prev.map(i => i.id));
-            const newFromServer = data.events.filter((e: HistoryItem) => !existingIds.has(e.id));
-            return [...newFromServer, ...prev];
-          });
+        if (data.events && Array.isArray(data.events)) {
+          setHistoryItems(data.events);
           setIsBackendConnected(true);
         }
       })
       .catch(err => {
-        console.warn('[Plotted] Backend events endpoint offline or starting up:', err);
+        console.warn('[Plotted] Backend events offline, relying on cached state:', err);
         setIsBackendConnected(false);
       });
   }, []);

@@ -1,6 +1,6 @@
 body {
   width: 350px;
-  max-height: 520px;
+  max-height: 560px;
   margin: 0;
   padding: 16px;
   background-color: #09090b;
@@ -14,6 +14,11 @@ body {
   align-items: center;
   margin-bottom: 12px;
 }
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .logo {
   display: flex;
   align-items: center;
@@ -21,6 +26,68 @@ body {
   font-weight: 800;
   letter-spacing: 0.05em;
   color: #fff;
+}
+.icon-btn {
+  background: transparent;
+  border: 1px solid #27272a;
+  color: #a1a1aa;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-size: 11px;
+}
+.icon-btn:hover {
+  background: #18181b;
+  color: #fff;
+}
+.settings-drawer {
+  background: #18181b;
+  border: 1px solid #3f3f46;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+.settings-drawer.hidden {
+  display: none;
+}
+.settings-title {
+  font-size: 9px;
+  font-weight: 700;
+  color: #a1a1aa;
+  margin-bottom: 6px;
+  font-family: monospace;
+}
+.input-group label {
+  display: block;
+  font-size: 10px;
+  color: #71717a;
+  margin-bottom: 3px;
+}
+.input-group input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #09090b;
+  border: 1px solid #27272a;
+  border-radius: 6px;
+  color: #f4f4f5;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-family: monospace;
+}
+.settings-buttons {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.btn.small {
+  padding: 4px 8px;
+  font-size: 10px;
+}
+.sync-status {
+  font-size: 9px;
+  color: #a1a1aa;
+  font-family: monospace;
+  margin-top: 6px;
 }
 .status-badge {
   font-size: 10px;

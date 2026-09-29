@@ -61,7 +61,7 @@ export const ExtensionHubView: React.FC<ExtensionHubViewProps> = ({
               Install Plotted on Chrome, Brave & Edge
             </h2>
             <p className="text-xs text-neutral-300 max-w-xl leading-relaxed">
-              Once installed, Plotted silently listens as you watch YouTube videos, scroll YouTube Shorts, search Google, or stream movies on third-party sites, personalizing your movie recommendations automatically.
+              Once installed, Plotted detects streaming-page and media-player signals, YouTube Shorts, video essays, and movie searches using content-script inspection, personalizing your movie recommendations automatically.
             </p>
           </div>
 

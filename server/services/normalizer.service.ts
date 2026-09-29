@@ -18,9 +18,10 @@ export class NormalizerService {
     const year = yearMatch ? parseInt(yearMatch[1], 10) : null;
 
     let clean = rawTitle
+      .replace(/\|.*|-.*|–.*/, ' ') // Strip site branding suffix first
+      .replace(/\(.*?\)|\[.*?\]/g, ' ') // Strip brackets and year wrappers
       .replace(/watch|free|online|hd|1080p|720p|4k|full movie|download|subbed|dubbed|stream|fmovies|123movies|soap2day|putlocker|bflix/gi, ' ')
-      .replace(/\|.*|-.*|–.*/, ' ') // Strip site suffix
-      .replace(/\(.*?\)|\[.*?\]/g, ' ') // Strip brackets
+      .replace(/bluray|web-?dl|webrip|dvdrip|english sub|eng sub|esub|camrip|x264|x265|hevc/gi, ' ')
       .replace(/\s+/g, ' ')
       .trim();
 
