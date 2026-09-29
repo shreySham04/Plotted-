@@ -1,0 +1,6 @@
+{
+  "name": "Plotted - AI Film Taste & Browser History Movie Recommender",
+  "description": "Browser extension and taste engine that analyzes YouTube history, search logs, and streaming sites (including unindexed stream sources) to map your Taste DNA and deliver precision movie recommendations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
