@@ -3,6 +3,7 @@ import { TasteProfile, Recommendation, HistoryItem } from '../types';
 import { 
   Sparkles, 
   Film, 
+  Tv,
   Bookmark, 
   BookmarkCheck, 
   Search, 
@@ -34,6 +35,7 @@ export const TasteDnaDashboard: React.FC<TasteDnaDashboardProps> = ({
   onOpenCaptureModal
 }) => {
   const [selectedMood, setSelectedMood] = useState<string>('all');
+  const [mediaFilter, setMediaFilter] = useState<'all' | 'movie' | 'series'>('all');
   const [customMoodInput, setCustomMoodInput] = useState<string>('');
   const [selectedMovie, setSelectedMovie] = useState<Recommendation | null>(null);
 
@@ -43,7 +45,7 @@ export const TasteDnaDashboard: React.FC<TasteDnaDashboardProps> = ({
   const pirateCount = historyItems.filter(i => i.type === 'pirate_stream').length;
 
   const moodPresets = [
-    { id: 'all', label: 'All Curated Recs' },
+    { id: 'all', label: 'All Vibe Curations' },
     { id: 'mindfuck', label: 'Mindfuck Thrillers' },
     { id: 'noir', label: 'Atmospheric Neo-Noir' },
     { id: 'slowburn', label: 'Slow-Burn Masterpieces' },
@@ -51,6 +53,11 @@ export const TasteDnaDashboard: React.FC<TasteDnaDashboardProps> = ({
   ];
 
   const filteredRecs = tasteProfile.recommendations.filter(rec => {
+    // 1. Media Type Filter (Movies vs Series)
+    if (mediaFilter === 'movie' && rec.mediaType === 'series') return false;
+    if (mediaFilter === 'series' && rec.mediaType !== 'series') return false;
+
+    // 2. Mood Filter
     if (selectedMood === 'all') return true;
     if (selectedMood === 'underground') return rec.isUndergroundGem;
     if (selectedMood === 'mindfuck') {
@@ -141,25 +148,58 @@ export const TasteDnaDashboard: React.FC<TasteDnaDashboardProps> = ({
         </div>
       </div>
 
-      {/* Mood Filters & Live Search */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-          {moodPresets.map((m) => {
-            const isActive = selectedMood === m.id;
-            return (
-              <button
-                key={m.id}
-                onClick={() => setSelectedMood(m.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
-                  isActive
-                    ? 'bg-white text-black shadow-md'
-                    : 'bg-neutral-900 text-neutral-400 hover:text-white border border-white/5'
-                }`}
-              >
-                {m.label}
-              </button>
-            );
-          })}
+      {/* Mood & Format Filters + Live Search */}
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 pt-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Format Selector: All / Movies / Series */}
+          <div className="flex items-center p-1 rounded-xl bg-neutral-900 border border-white/10 gap-1 text-xs shrink-0">
+            <button
+              onClick={() => setMediaFilter('all')}
+              className={`px-2.5 py-1 rounded-lg transition-all ${
+                mediaFilter === 'all' ? 'bg-indigo-600 text-white font-semibold shadow' : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              All Formats
+            </button>
+            <button
+              onClick={() => setMediaFilter('movie')}
+              className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                mediaFilter === 'movie' ? 'bg-indigo-600 text-white font-semibold shadow' : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              <Film className="w-3 h-3" />
+              <span>Movies</span>
+            </button>
+            <button
+              onClick={() => setMediaFilter('series')}
+              className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                mediaFilter === 'series' ? 'bg-indigo-600 text-white font-semibold shadow' : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              <Tv className="w-3 h-3" />
+              <span>TV Series</span>
+            </button>
+          </div>
+
+          {/* Mood Presets */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
+            {moodPresets.map((m) => {
+              const isActive = selectedMood === m.id;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => setSelectedMood(m.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
+                    isActive
+                      ? 'bg-white text-black shadow-md'
+                      : 'bg-neutral-900 text-neutral-400 hover:text-white border border-white/5'
+                  }`}
+                >
+                  {m.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Live Recommendation Prompt */}
@@ -170,7 +210,7 @@ export const TasteDnaDashboard: React.FC<TasteDnaDashboardProps> = ({
               type="text"
               value={customMoodInput}
               onChange={(e) => setCustomMoodInput(e.target.value)}
-              placeholder="e.g. cozy 90s thriller, rainy noir..."
+              placeholder="e.g. mind-bending series, 90s thriller..."
               className="w-full bg-neutral-900 border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-indigo-500 font-sans"
             />
           </div>
@@ -185,10 +225,12 @@ export const TasteDnaDashboard: React.FC<TasteDnaDashboardProps> = ({
         </form>
       </div>
 
-      {/* Recommendations Cards Grid (Clean, readable, movie-first) */}
+      {/* Recommendations Cards Grid (Clean, readable, movie & series cards) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filteredRecs.map((rec) => {
           const isSaved = watchlist.includes(rec.title);
+          const isSeries = rec.mediaType === 'series';
+
           return (
             <div
               key={rec.id}
@@ -201,13 +243,24 @@ export const TasteDnaDashboard: React.FC<TasteDnaDashboardProps> = ({
                 <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-transparent" />
 
                 <div className="relative z-10 flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold font-mono">
                       {rec.matchScore}% Match
                     </span>
+                    {isSeries ? (
+                      <span className="px-2 py-0.5 rounded-md bg-indigo-500/25 text-indigo-300 border border-indigo-500/40 text-[10px] font-mono font-bold flex items-center gap-1">
+                        <Tv className="w-3 h-3 text-indigo-400" />
+                        <span>{rec.seasons || 'Series'}</span>
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-md bg-neutral-900/80 text-neutral-300 border border-white/10 text-[10px] font-mono font-semibold flex items-center gap-1">
+                        <Film className="w-3 h-3 text-neutral-400" />
+                        <span>Movie</span>
+                      </span>
+                    )}
                     {rec.isUndergroundGem && (
                       <span className="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-mono font-bold">
-                        Underground Gem
+                        Gem
                       </span>
                     )}
                   </div>
@@ -226,7 +279,7 @@ export const TasteDnaDashboard: React.FC<TasteDnaDashboardProps> = ({
                   <div className="text-[11px] text-neutral-300 font-mono flex items-center gap-1.5">
                     <span>{rec.year}</span>
                     <span>•</span>
-                    <span>{rec.director}</span>
+                    <span>{isSeries ? (rec.creator ? `Creator: ${rec.creator}` : rec.director) : `Dir. ${rec.director}`}</span>
                     <span>•</span>
                     <span>{rec.runtime}</span>
                   </div>
@@ -280,14 +333,29 @@ export const TasteDnaDashboard: React.FC<TasteDnaDashboardProps> = ({
           <div className="relative w-full max-w-lg rounded-2xl border border-white/10 bg-[#0d0e17] overflow-hidden shadow-2xl space-y-4 p-6">
             <div className="flex items-start justify-between">
               <div>
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-xs font-mono font-bold">
-                  {selectedMovie.matchScore}% Match
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-xs font-mono font-bold">
+                    {selectedMovie.matchScore}% Match
+                  </span>
+                  {selectedMovie.mediaType === 'series' ? (
+                    <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-xs font-mono font-bold flex items-center gap-1">
+                      <Tv className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>{selectedMovie.seasons || 'TV Series'}</span>
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded bg-neutral-800 text-neutral-300 text-xs font-mono font-semibold flex items-center gap-1">
+                      <Film className="w-3.5 h-3.5 text-neutral-400" />
+                      <span>Feature Film</span>
+                    </span>
+                  )}
+                </div>
                 <h2 className="text-xl font-bold text-white font-['Cinzel'] mt-1">
                   {selectedMovie.title} ({selectedMovie.year})
                 </h2>
                 <p className="text-xs text-neutral-400 font-mono">
-                  Directed by {selectedMovie.director} • {selectedMovie.runtime}
+                  {selectedMovie.mediaType === 'series'
+                    ? `${selectedMovie.creator ? `Created by ${selectedMovie.creator}` : `Directed by ${selectedMovie.director}`} • ${selectedMovie.runtime}`
+                    : `Directed by ${selectedMovie.director} • ${selectedMovie.runtime}`}
                 </p>
               </div>
 

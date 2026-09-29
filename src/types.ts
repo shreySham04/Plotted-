@@ -19,6 +19,9 @@ export interface Recommendation {
   title: string;
   year: number;
   director: string;
+  creator?: string;
+  mediaType?: 'movie' | 'series';
+  seasons?: string;
   matchScore: number;
   scoreBreakdown?: {
     genreScore: number;

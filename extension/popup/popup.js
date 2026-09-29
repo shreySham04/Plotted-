@@ -20,7 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const titleSpan = document.createElement('span');
       titleSpan.className = 'rec-title';
-      titleSpan.textContent = `${r.title || 'Untitled'} (${r.year || '2024'})`;
+      const icon = r.mediaType === 'series' ? '📺 ' : '🎬 ';
+      const tag = r.mediaType === 'series' ? ` [${r.seasons || 'Series'}]` : '';
+      titleSpan.textContent = `${icon}${r.title || 'Untitled'} (${r.year || '2024'})${tag}`;
 
       const scoreSpan = document.createElement('span');
       scoreSpan.className = 'rec-score';
@@ -37,31 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
       itemDiv.appendChild(reasonDiv);
       container.appendChild(itemDiv);
     });
-  }
-
-  // Fallback movie recommendation generator when profile recommendations haven't synced yet
-  function generateFallbackRecommendations(events) {
-    const list = [
-      {
-        title: "Incendies",
-        year: 2010,
-        matchScore: 97,
-        whyItMatched: "Matches your Denis Villeneuve video breakdown and search for structural plot twists."
-      },
-      {
-        title: "Cure (Kyua)",
-        year: 1997,
-        matchScore: 94,
-        whyItMatched: "Matches psychological mystery themes and slow-burn tension in your watch activity."
-      },
-      {
-        title: "Coherence",
-        year: 2013,
-        matchScore: 92,
-        whyItMatched: "Calculated match from your high-tension existential puzzle queries."
-      }
-    ];
-    return list;
   }
 
   // Load stored signals and profile
@@ -94,15 +71,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const recsBox = document.getElementById('recs-container');
     if (recsBox) {
-      const recs = (profile?.recommendations && profile.recommendations.length > 0)
-        ? profile.recommendations
-        : (events.length > 0 ? generateFallbackRecommendations(events) : []);
-      renderRecommendations(recsBox, recs);
-    }
-
-    // If events exist but no profile, request a fresh AI taste analysis in the background
-    if (events.length > 0 && (!profile || !profile.recommendations || profile.recommendations.length === 0)) {
-      triggerBackgroundAnalysis(apiUrl, events);
+      if (profile?.recommendations && profile.recommendations.length > 0) {
+        renderRecommendations(recsBox, profile.recommendations);
+      } else if (events.length > 0) {
+        recsBox.innerHTML = '<div style="font-size: 11px; color: #a1a1aa; padding: 6px;">✨ Analyzing your signals & generating recommendations...</div>';
+        triggerBackgroundAnalysis(apiUrl, events);
+      } else {
+        recsBox.innerHTML = '<div style="font-size: 11px; color: #71717a; padding: 6px;">Browse YouTube, Shorts, or movie sites to generate recommendations.</div>';
+      }
     }
 
     const apiUrlInput = document.getElementById('api-url-input');
