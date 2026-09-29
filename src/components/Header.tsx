@@ -1,5 +1,5 @@
 import React from 'react';
-import { Film, Sparkles, Compass, Download, Plus, Zap, ShieldCheck } from 'lucide-react';
+import { Film, Sparkles, Compass, Download, Plus, Zap, ShieldCheck, Clock } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'recs' | 'activity' | 'extension';
@@ -8,6 +8,7 @@ interface HeaderProps {
   pirateCount: number;
   isAnalyzing: boolean;
   onOpenCaptureModal: () => void;
+  onOpenGatherModal: () => void;
   onRefreshTaste: () => void;
   onDownloadZip: () => void;
 }
@@ -19,6 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
   pirateCount,
   isAnalyzing,
   onOpenCaptureModal,
+  onOpenGatherModal,
   onRefreshTaste,
   onDownloadZip
 }) => {
@@ -93,13 +95,23 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Clean Quick Actions */}
         <div className="flex items-center gap-2 shrink-0">
           <button
+            onClick={onOpenGatherModal}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-200 text-xs font-semibold border border-indigo-500/30 transition-all shadow-sm"
+            title="Gather past YouTube watches, Shorts, and searches (Week, Month, Year, All)"
+          >
+            <Clock className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="hidden sm:inline">Gather</span>
+            <span>History</span>
+          </button>
+
+          <button
             onClick={onOpenCaptureModal}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold border border-white/15 transition-all shadow-sm"
             title="Log YouTube Shorts, Searches, or Movie streams"
           >
-            <Plus className="w-3.5 h-3.5 text-indigo-400" />
-            <span className="hidden sm:inline">Capture</span>
-            <span>History</span>
+            <Plus className="w-3.5 h-3.5 text-neutral-300" />
+            <span className="hidden sm:inline">Add</span>
+            <span>Manual</span>
           </button>
 
           <button

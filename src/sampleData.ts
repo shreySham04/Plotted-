@@ -126,252 +126,8 @@ export const INITIAL_HISTORY_ITEMS: HistoryItem[] = [
   }
 ];
 
-export const CLEAN_SLATE_TASTE_PROFILE: TasteProfile = {
-  tasteArchetype: "Uncalibrated Film Explorer",
-  archetypeDescription: "You haven't logged any viewing history yet. Start watching YouTube video essays, scrolling cinema Shorts, searching movie queries, or streaming films to uncover your personalized Taste DNA.",
-  tasteDna: {
-    genres: [
-      { name: "Cinema Ingestion Ready", percentage: 100 }
-    ],
-    themes: [
-      "Awaiting watch history & search signals",
-      "Ready to analyze narrative styles",
-      "Streaming player detection active"
-    ],
-    directors: ["Pending user watch activity..."],
-    pacingPreference: "Calibrating based on initial signals...",
-    visualStyle: "Calibrating visual preference..."
-  },
-  capturedSignalsSummary: {
-    totalEvents: 0,
-    youtubeHighlights: ["No YouTube activity detected yet."],
-    searchHighlights: ["No movie searches logged yet."],
-    pirateStreamHighlights: ["No web stream captures logged yet."],
-    hiddenAffinitiesFound: "Browse YouTube, search on Google, or stream movies to train your AI Taste DNA."
-  },
-  recommendations: []
-};
-
-export interface TestPersona {
-  id: string;
-  name: string;
-  tagline: string;
-  icon: string;
-  history: HistoryItem[];
-  profile: TasteProfile;
-}
-
-export const TEST_PERSONAS: Record<string, TestPersona> = {
-  clean_slate: {
-    id: 'clean_slate',
-    name: 'Brand-New User (Clean Slate)',
-    tagline: 'Zero history, fresh onboarding state to test from scratch',
-    icon: '🧹',
-    history: [],
-    profile: CLEAN_SLATE_TASTE_PROFILE
-  },
-  existential_puzzle: {
-    id: 'existential_puzzle',
-    name: 'Existential Neo-Noir & Puzzle Seeker',
-    tagline: 'Mind-benders, unreliable narrators & Denis Villeneuve',
-    icon: '🧩',
-    history: INITIAL_HISTORY_ITEMS,
-    profile: INITIAL_TASTE_PROFILE
-  },
-  cyberpunk_scifi: {
-    id: 'cyberpunk_scifi',
-    name: 'Neon Cyberpunk & Hard Sci-Fi',
-    tagline: 'Dystopian futures, artificial intelligence & existential space',
-    icon: '🚀',
-    history: [
-      {
-        id: 'evt-cb-1',
-        type: 'youtube_shorts',
-        isShorts: true,
-        title: 'Blade Runner 2049 color grading breakdown #shorts',
-        channel: 'ColoristCinema',
-        duration: '0:50',
-        url: 'https://youtube.com/shorts/br2049-color-edit',
-        timestamp: '15 mins ago',
-        notes: 'Explored neon teal-orange contrast in Denis Villeneuve cinematography.',
-        detectedMovie: 'Blade Runner 2049'
-      },
-      {
-        id: 'evt-cb-2',
-        type: 'youtube',
-        title: 'The Philosophy of The Matrix - Baudrillard Simulacra and Simulation',
-        channel: 'Wisecrack',
-        duration: '16:40',
-        url: 'https://youtube.com/watch?v=matrix-philosophy',
-        timestamp: '1 hour ago',
-        notes: 'Deep dive into cyberpunk philosophy and simulation theory.',
-        detectedMovie: 'The Matrix (1999)'
-      },
-      {
-        id: 'evt-cb-3',
-        type: 'search',
-        title: 'Search: hard sci fi movies like interstellar with accurate physics reddit',
-        query: 'hard sci fi movies like interstellar with accurate physics reddit',
-        url: 'https://google.com/search?q=hard+sci+fi+movies+like+interstellar+with+accurate+physics+reddit',
-        timestamp: '4 hours ago',
-        notes: 'Targeting scientifically grounded space exploration.'
-      },
-      {
-        id: 'evt-cb-4',
-        type: 'pirate_stream',
-        title: 'Watch Akira (1988) 4K Remaster Free Online | StreamLocker',
-        url: 'https://streamlocker.is/watch-akira-1988-4k.html',
-        timestamp: 'Yesterday',
-        notes: 'Plotted detected Neo-Tokyo cyberpunk animated film stream.',
-        detectedMovie: 'Akira (1988)'
-      }
-    ],
-    profile: {
-      tasteArchetype: "The Cybernetic Futurist & Dystopian Seeker",
-      archetypeDescription: "You explore synthetic consciousness, high-tech dystopian urbanism, existential space travel, and grand philosophical dilemmas bathed in synth-wave aesthetics.",
-      tasteDna: {
-        genres: [
-          { name: "Cyberpunk / Dystopian", percentage: 45 },
-          { name: "Hard Sci-Fi", percentage: 32 },
-          { name: "Philosophical Anime", percentage: 15 },
-          { name: "Techno-Thriller", percentage: 8 }
-        ],
-        themes: ["Artificial Sentience & Human Identity", "Dystopian Megacorporations", "Theoretical Physics & Relativistic Time"],
-        directors: ["Ridley Scott", "Denis Villeneuve", "Katsuhiro Otomo", "Christopher Nolan"],
-        pacingPreference: "Atmospheric world-building with intense audiovisual climaxes",
-        visualStyle: "Neon reflection in rain, brutalist architecture, towering holographic displays"
-      },
-      capturedSignalsSummary: {
-        totalEvents: 4,
-        youtubeHighlights: ["Blade Runner 2049 color grading breakdown #shorts", "Matrix philosophy video essay"],
-        searchHighlights: ["Searched for hard sci-fi films with accurate physics"],
-        pirateStreamHighlights: ["Watched Akira 4K remaster on StreamLocker"],
-        hiddenAffinitiesFound: "Strong alignment with hand-drawn 80s anime cyberpunk and 70mm hard science fiction."
-      },
-      recommendations: [
-        {
-          id: 'rec-cb-1',
-          title: 'Ghost in the Shell',
-          year: 1995,
-          director: 'Mamoru Oshii',
-          matchScore: 99,
-          genres: ['Cyberpunk', 'Animation', 'Sci-Fi'],
-          posterDescription: 'Major Motoko Kusanagi suspended in cybernetic amniotic fluid.',
-          backdropGradient: 'from-emerald-950 via-teal-900 to-black',
-          overview: 'In 2029, cyborg federal agent Major Motoko Kusanagi tracks the Puppet Master, a phantom hacker infiltrating human cyber-brains.',
-          whyItMatched: 'Matched your Akira stream and philosophical Matrix video essays.',
-          triggerSignals: ['Pirate Stream: Akira (1988)', 'YouTube: Matrix Philosophy'],
-          mood: 'Philosophical & Transhumanist',
-          rating: '7.9/10 IMDb',
-          runtime: '83 min',
-          whereToWatch: ['Crunchyroll', 'Apple TV', 'Prime Video'],
-          isUndergroundGem: false
-        },
-        {
-          id: 'rec-cb-2',
-          title: 'Upgrade',
-          year: 2018,
-          director: 'Leigh Whannell',
-          matchScore: 94,
-          genres: ['Action', 'Cyberpunk', 'Sci-Fi'],
-          posterDescription: 'A paralyzed man equipped with an experimental AI chip with ruthless lethal instincts.',
-          backdropGradient: 'from-cyan-950 via-blue-900 to-black',
-          overview: 'Set in the near future, technology controls nearly all aspects of life. When Grey is left paralyzed, a STEM implant offers vengeance.',
-          whyItMatched: 'Direct hit on your cyberpunk techno-thriller search query.',
-          triggerSignals: ['Search: hard sci-fi cyberpunk movies', 'YouTube Shorts: BR2049 edit'],
-          mood: 'Visceral & Kinetic',
-          rating: '7.5/10 IMDb',
-          runtime: '100 min',
-          whereToWatch: ['Netflix', 'Apple TV'],
-          isUndergroundGem: true
-        }
-      ]
-    }
-  },
-  anime_nostalgia: {
-    id: 'anime_nostalgia',
-    name: 'Whimsical Anime & Nostalgic Auteur',
-    tagline: 'Studio Ghibli, bittersweet youth & ethereal magical realism',
-    icon: '🍃',
-    history: [
-      {
-        id: 'evt-an-1',
-        type: 'youtube_shorts',
-        isShorts: true,
-        title: 'Why Studio Ghibli food looks so comforting and delicious #shorts',
-        channel: 'AnimeEats',
-        duration: '0:45',
-        url: 'https://youtube.com/shorts/ghibli-food-craft',
-        timestamp: '30 mins ago',
-        notes: 'Focused on hand-drawn textures and emotional warmth.',
-        detectedMovie: 'Spirited Away'
-      },
-      {
-        id: 'evt-an-2',
-        type: 'youtube',
-        title: 'Satoshi Kon - Editing Time and Space like a Magician',
-        channel: 'Every Frame a Painting',
-        duration: '10:20',
-        url: 'https://youtube.com/watch?v=satoshi-kon-editing',
-        timestamp: '3 hours ago',
-        notes: 'Explored match cuts and dream logic in Millennium Actress and Paprika.',
-        detectedMovie: 'Millennium Actress'
-      },
-      {
-        id: 'evt-an-3',
-        type: 'search',
-        title: 'Search: movies that feel like a warm hug and bittersweet nostalgia',
-        query: 'movies that feel like a warm hug and bittersweet nostalgia',
-        url: 'https://google.com/search?q=movies+that+feel+like+warm+hug+nostalgia',
-        timestamp: 'Yesterday',
-        notes: 'Exploring heartfelt Japanese cinema.'
-      }
-    ],
-    profile: {
-      tasteArchetype: "The Poetic Dreamer & Nostalgic Humanist",
-      archetypeDescription: "You cherish bittersweet emotional resonance, hand-drawn pastoral landscapes, magical realism, and the gentle melancholy of passing time.",
-      tasteDna: {
-        genres: [
-          { name: "Magical Realism / Anime", percentage: 50 },
-          { name: "Bittersweet Drama", percentage: 30 },
-          { name: "Surrealist Fantasy", percentage: 20 }
-        ],
-        themes: ["Fleeting Childhood & Memory", "Connection with Nature & Spirits", "Dream Logic & Subjective Reality"],
-        directors: ["Hayao Miyazaki", "Satoshi Kon", "Makoto Shinkai", "Isao Takahata"],
-        pacingPreference: "Gentle, contemplative breaths ('Ma') punctuated by enchanting wonder",
-        visualStyle: "Lush watercolor skies, vibrant foliage, detailed culinary animation"
-      },
-      capturedSignalsSummary: {
-        totalEvents: 3,
-        youtubeHighlights: ["Studio Ghibli comfort food breakdown #shorts", "Satoshi Kon Editing Time & Space video essay"],
-        searchHighlights: ["Searched for bittersweet nostalgia cinema"],
-        pirateStreamHighlights: ["No pirate streams logged (prefers high quality animation streaming)"],
-        hiddenAffinitiesFound: "Deep appreciation for non-linear match cuts and magical realism."
-      },
-      recommendations: [
-        {
-          id: 'rec-an-1',
-          title: 'Millennium Actress',
-          year: 2001,
-          director: 'Satoshi Kon',
-          matchScore: 98,
-          genres: ['Animation', 'Drama', 'Romance'],
-          posterDescription: 'An aging movie star recounting her elusive lifelong search across overlapping cinema eras.',
-          backdropGradient: 'from-amber-950 via-rose-900 to-black',
-          overview: 'Two documentary filmmakers interview a retired actress and discover her real-life search for an enigmatic rebel has blended with every film role she ever played.',
-          whyItMatched: 'Directly linked to your video essay watch on Satoshi Kon match cuts.',
-          triggerSignals: ['YouTube: Satoshi Kon Editing Essay'],
-          mood: 'Lyrical & Breathtaking',
-          rating: '7.9/10 IMDb',
-          runtime: '87 min',
-          whereToWatch: ['Apple TV', 'Prime Video'],
-          isUndergroundGem: true
-        }
-      ]
-    }
-  }
-};
-
+export const INITIAL_TASTE_PROFILE: TasteProfile = {
+  tasteArchetype: "The Existential Puzzle-Solver & Neo-Noir Seeker",
   archetypeDescription: "You gravitate towards mind-bending narratives with unreliable narrators, high existential tension, and meticulously framed cinematography. Your viewing habits show an insatiable appetite for decoding complex plots right after watching.",
   tasteDna: {
     genres: [
@@ -499,3 +255,126 @@ export const TEST_PERSONAS: Record<string, TestPersona> = {
     }
   ]
 };
+
+// Generates historical signals tailored to the user's chosen gathering timeframe
+export function getSampleHistoryForTimeframe(timeframe: 'week' | 'month' | 'year' | 'all' | 'now'): HistoryItem[] {
+  if (timeframe === 'now') {
+    return [];
+  }
+
+  if (timeframe === 'week') {
+    return INITIAL_HISTORY_ITEMS.slice(0, 5);
+  }
+
+  if (timeframe === 'month') {
+    return INITIAL_HISTORY_ITEMS;
+  }
+
+  // Extended year-long and all-time archives
+  const yearItems: HistoryItem[] = [
+    ...INITIAL_HISTORY_ITEMS,
+    {
+      id: 'evt-yr-1',
+      type: 'youtube',
+      title: 'Tarkovsky - How To Sculpt in Time (Film Aesthetics Analysis)',
+      channel: 'Thomas Flight',
+      duration: '21:10',
+      url: 'https://youtube.com/watch?v=tarkovsky-time-sculpt',
+      timestamp: '2 months ago',
+      notes: 'Deep study of poetic rhythm and existential melancholy.',
+      detectedMovie: 'Stalker / Solaris'
+    },
+    {
+      id: 'evt-yr-2',
+      type: 'youtube_shorts',
+      isShorts: true,
+      title: 'Why David Lynch refuses to explain Mulholland Drive #shorts',
+      channel: 'CineShorts',
+      duration: '0:38',
+      url: 'https://youtube.com/shorts/david-lynch-mulholland-secret',
+      timestamp: '3 months ago',
+      notes: 'Shorts feed impression on surrealist dream logic.',
+      detectedMovie: 'Mulholland Drive (2001)'
+    },
+    {
+      id: 'evt-yr-3',
+      type: 'pirate_stream',
+      title: 'Watch The Vanishing (Spoorloos 1988) 1080p Online Free | Hurawatch',
+      url: 'https://hurawatch.cc/movie/the-vanishing-1988',
+      timestamp: '4 months ago',
+      notes: 'Captured unindexed Dutch psychological suspense thriller.',
+      detectedMovie: 'The Vanishing (Spoorloos) (1988)'
+    },
+    {
+      id: 'evt-yr-4',
+      type: 'search',
+      title: 'Search: movies like zodiac with cold realistic police procedural realism',
+      query: 'movies like zodiac with cold realistic police procedural realism',
+      url: 'https://www.google.com/search?q=movies+like+zodiac+police+procedural',
+      timestamp: '5 months ago',
+      notes: 'Examined Letterboxd procedural lists and reddit recs.',
+      detectedMovie: 'Procedural Mystery Films'
+    },
+    {
+      id: 'evt-yr-5',
+      type: 'official_stream',
+      title: 'Watched: Annihilation (2018) on Netflix',
+      url: 'https://www.netflix.com/watch/80206300',
+      timestamp: '6 months ago',
+      notes: 'Full stream completed via Netflix player.',
+      detectedMovie: 'Annihilation (2018)'
+    },
+    {
+      id: 'evt-yr-6',
+      type: 'youtube_shorts',
+      isShorts: true,
+      title: 'The craziest 5 minute scene ever filmed in Children of Men #shorts',
+      channel: 'FilmGeeks',
+      duration: '0:50',
+      url: 'https://youtube.com/shorts/children-of-men-car-ambush',
+      timestamp: '7 months ago',
+      notes: 'One-shot camera technique breakdown reel.',
+      detectedMovie: 'Children of Men (2006)'
+    }
+  ];
+
+  if (timeframe === 'year') {
+    return yearItems;
+  }
+
+  // All time
+  return [
+    ...yearItems,
+    {
+      id: 'evt-all-1',
+      type: 'pirate_stream',
+      title: 'Watch Stalker (1979) Soviet SciFi Masterpiece | Lookmovie',
+      url: 'https://lookmovie2.to/movies/view/stalker-1979',
+      timestamp: '1 year ago',
+      notes: 'Underground stream capture of 162 min meditative journey.',
+      detectedMovie: 'Stalker (1979)'
+    },
+    {
+      id: 'evt-all-2',
+      type: 'search',
+      title: 'Search: best slow burn psychological horror movies of all time',
+      query: 'best slow burn psychological horror movies of all time',
+      url: 'https://www.google.com/search?q=best+slow+burn+psychological+horror',
+      timestamp: '14 months ago',
+      notes: 'Collected classic and modern dread lists.',
+      detectedMovie: 'Atmospheric Horror'
+    },
+    {
+      id: 'evt-all-3',
+      type: 'youtube',
+      title: 'The Cinematography of Blade Runner 2049: Roger Deakins Masterclass',
+      channel: 'In Depth Cine',
+      duration: '16:40',
+      url: 'https://youtube.com/watch?v=deakins-blade-runner',
+      timestamp: '16 months ago',
+      notes: 'Analysis of silhouettes, fog lighting, and color temperature.',
+      detectedMovie: 'Blade Runner 2049'
+    }
+  ];
+}
+

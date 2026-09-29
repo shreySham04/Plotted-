@@ -16,6 +16,7 @@ import {
 interface HistorySignalsViewProps {
   historyItems: HistoryItem[];
   onOpenCaptureModal: () => void;
+  onOpenGatherModal?: () => void;
   onRemoveHistoryItem: (id: string) => void;
   onClearHistory: () => void;
   onRefreshTaste: () => void;
@@ -25,6 +26,7 @@ interface HistorySignalsViewProps {
 export const HistorySignalsView: React.FC<HistorySignalsViewProps> = ({
   historyItems,
   onOpenCaptureModal,
+  onOpenGatherModal,
   onRemoveHistoryItem,
   onClearHistory,
   onRefreshTaste,
@@ -66,12 +68,22 @@ export const HistorySignalsView: React.FC<HistorySignalsViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          {onOpenGatherModal && (
+            <button
+              onClick={onOpenGatherModal}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-950/70 hover:bg-indigo-900/80 text-indigo-200 border border-indigo-500/30 text-xs font-semibold shadow-sm transition-all"
+            >
+              <Clock className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Gather History</span>
+            </button>
+          )}
+
           <button
             onClick={onOpenCaptureModal}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 transition-all font-sans"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>+ Capture History</span>
+            <span>+ Add Manual</span>
           </button>
 
           <button

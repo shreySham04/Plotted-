@@ -75,8 +75,8 @@ export const ExtensionHubView: React.FC<ExtensionHubViewProps> = ({
         </div>
       </div>
 
-      {/* 3-Step Simple Setup Guide */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* 4-Step Simple Setup Guide */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div className="rounded-xl border border-white/10 bg-neutral-950 p-4 space-y-2">
           <div className="w-6 h-6 rounded-lg bg-indigo-600/20 text-indigo-400 font-mono font-bold flex items-center justify-center text-xs">
             1
@@ -91,9 +91,9 @@ export const ExtensionHubView: React.FC<ExtensionHubViewProps> = ({
           <div className="w-6 h-6 rounded-lg bg-indigo-600/20 text-indigo-400 font-mono font-bold flex items-center justify-center text-xs">
             2
           </div>
-          <h4 className="text-xs font-bold text-white">Open chrome://extensions</h4>
+          <h4 className="text-xs font-bold text-white">chrome://extensions</h4>
           <p className="text-[11px] text-neutral-400">
-            Open Chrome, navigate to <code className="text-indigo-300">chrome://extensions</code>, and turn on <strong>"Developer mode"</strong> (top-right).
+            Open Chrome, navigate to <code className="text-indigo-300">chrome://extensions</code>, and turn on <strong>"Developer mode"</strong>.
           </p>
         </div>
 
@@ -101,9 +101,19 @@ export const ExtensionHubView: React.FC<ExtensionHubViewProps> = ({
           <div className="w-6 h-6 rounded-lg bg-indigo-600/20 text-indigo-400 font-mono font-bold flex items-center justify-center text-xs">
             3
           </div>
-          <h4 className="text-xs font-bold text-white">Click "Load Unpacked"</h4>
+          <h4 className="text-xs font-bold text-white">Load Unpacked</h4>
           <p className="text-[11px] text-neutral-400">
-            Click <strong>"Load unpacked"</strong> and select the unzipped directory. Plotted will immediately start monitoring.
+            Click <strong>"Load unpacked"</strong> and select the unzipped directory to activate Plotted.
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-indigo-500/30 bg-indigo-950/20 p-4 space-y-2">
+          <div className="w-6 h-6 rounded-lg bg-indigo-600 text-white font-mono font-bold flex items-center justify-center text-xs">
+            4
+          </div>
+          <h4 className="text-xs font-bold text-indigo-200">Gather Past History</h4>
+          <p className="text-[11px] text-neutral-400">
+            Click <strong>"⏳ History"</strong> in the popup to choose: <em>Week, Month, Year, All Time</em>, or <em>From Now On</em>.
           </p>
         </div>
       </div>
@@ -111,7 +121,7 @@ export const ExtensionHubView: React.FC<ExtensionHubViewProps> = ({
       {/* Extension Toolbar Popup Preview */}
       <div className="rounded-2xl border border-white/10 bg-neutral-950 p-6 space-y-4">
         <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400 font-mono">
-          EXTENSION POPUP PREVIEW
+          EXTENSION POPUP PREVIEW (WITH HISTORY GATHERER)
         </h3>
 
         <div className="max-w-[340px] mx-auto rounded-xl border border-white/15 bg-[#09090b] shadow-2xl p-4 space-y-3 font-sans">
@@ -119,9 +129,29 @@ export const ExtensionHubView: React.FC<ExtensionHubViewProps> = ({
             <span className="font-bold text-xs text-white font-['Cinzel'] tracking-wider">
               🎬 PLOTTED
             </span>
-            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded">
-              ● Active Monitor
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9px] font-mono text-indigo-300 bg-indigo-950/60 px-1.5 py-0.5 rounded border border-indigo-500/30">
+                ⏳ History
+              </span>
+              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded">
+                ● Active
+              </span>
+            </div>
+          </div>
+
+          {/* Mini Gather Card */}
+          <div className="p-2.5 rounded-lg bg-indigo-950/30 border border-indigo-500/20 space-y-1.5 text-left">
+            <div className="flex justify-between items-center">
+              <span className="text-[9px] font-mono font-bold text-indigo-300 uppercase">Gather Previous History</span>
+              <span className="text-[8px] font-mono bg-indigo-500/20 text-indigo-200 px-1.5 py-0.2 rounded">Last Month</span>
+            </div>
+            <div className="grid grid-cols-5 gap-1 text-[8px] font-mono text-center">
+              <span className="p-1 bg-neutral-900 rounded text-neutral-400">Week</span>
+              <span className="p-1 bg-indigo-600 rounded text-white font-bold">Month</span>
+              <span className="p-1 bg-neutral-900 rounded text-neutral-400">Year</span>
+              <span className="p-1 bg-neutral-900 rounded text-neutral-400">All</span>
+              <span className="p-1 bg-neutral-900 rounded text-neutral-400">Now</span>
+            </div>
           </div>
 
           <div className="p-3 rounded-lg bg-neutral-900 border border-white/5 space-y-1">

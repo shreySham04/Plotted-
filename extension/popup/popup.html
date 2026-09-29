@@ -13,8 +13,27 @@
     </div>
     <div class="header-actions">
       <span class="status-badge live">● Active Monitor</span>
+      <button id="toggle-gather" class="icon-btn" title="Gather Previous History">⏳ History</button>
       <button id="toggle-settings" class="icon-btn" title="API Settings">⚙️</button>
     </div>
+  </div>
+
+  <!-- Gather Previous History Drawer / Panel -->
+  <div id="gather-drawer" class="gather-drawer">
+    <div class="gather-head">
+      <span class="gather-label">GATHER PREVIOUS HISTORY</span>
+      <span id="gather-timeframe-tag" class="gather-tag">Last Month</span>
+    </div>
+    <p class="gather-expl">Import past YouTube watches, Shorts, searches & films to jumpstart your Taste DNA:</p>
+    <div class="timeframe-grid">
+      <button class="timeframe-btn" data-timeframe="week">Last Week</button>
+      <button class="timeframe-btn active" data-timeframe="month">Last Month</button>
+      <button class="timeframe-btn" data-timeframe="year">Last Year</button>
+      <button class="timeframe-btn" data-timeframe="all">All Time</button>
+      <button class="timeframe-btn" data-timeframe="now">From Now On</button>
+    </div>
+    <button id="gather-history-btn" class="btn small gather-submit">Gather & Sync Signals</button>
+    <div id="gather-status" class="gather-status">Select timeframe and click to gather</div>
   </div>
 
   <!-- Collapsible Settings & Sync Drawer -->

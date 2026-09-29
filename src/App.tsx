@@ -1,20 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { HistoryItem, TasteProfile, Recommendation } from './types';
-import { INITIAL_HISTORY_ITEMS, INITIAL_TASTE_PROFILE } from './sampleData';
+import { INITIAL_HISTORY_ITEMS, INITIAL_TASTE_PROFILE, getSampleHistoryForTimeframe } from './sampleData';
 import { Header } from './components/Header';
 import { TasteDnaDashboard } from './components/TasteDnaDashboard';
 import { HistorySignalsView } from './components/HistorySignalsView';
 import { ExtensionHubView } from './components/ExtensionHubView';
 import { CaptureModal } from './components/CaptureModal';
+import { HistoryImportModal, TimeframeOption } from './components/HistoryImportModal';
 import { AlertCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 const STORAGE_KEY_HISTORY = 'plotted_app_history';
 const STORAGE_KEY_TASTE = 'plotted_app_taste';
 const STORAGE_KEY_WATCHLIST = 'plotted_app_watchlist';
+const STORAGE_KEY_TIMEFRAME = 'plotted_app_timeframe';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'recs' | 'activity' | 'extension'>('recs');
   const [isCaptureModalOpen, setIsCaptureModalOpen] = useState(false);
+  const [isGatherModalOpen, setIsGatherModalOpen] = useState(false);
+  const [currentTimeframe, setCurrentTimeframe] = useState<TimeframeOption>(() => {
+    return (localStorage.getItem(STORAGE_KEY_TIMEFRAME) as TimeframeOption) || 'month';
+  });
   
   // History Items State (includes YouTube, YouTube Shorts, Search, Stream Lockers)
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>(() => {
@@ -107,7 +113,8 @@ export default function App() {
   };
 
   // Re-analyze Taste DNA via server-side Gemini & mathematical ranking
-  const handleRefreshTaste = async () => {
+  const handleRefreshTaste = async (itemsToAnalyze?: HistoryItem[]) => {
+    const targetItems = itemsToAnalyze || historyItems;
     setIsAnalyzing(true);
     setApiError(null);
     showToast('Computing feature vectors & mathematical ranking...');
@@ -116,7 +123,7 @@ export default function App() {
       const response = await fetch('/api/analyze-taste', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ historyItems }),
+        body: JSON.stringify({ historyItems: targetItems }),
       });
 
       if (!response.ok) {
@@ -133,6 +140,41 @@ export default function App() {
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  // Retroactive History Gathering across selected timeframe
+  const handleApplyTimeframe = async (timeframe: TimeframeOption) => {
+    setCurrentTimeframe(timeframe);
+    try {
+      localStorage.setItem(STORAGE_KEY_TIMEFRAME, timeframe);
+    } catch (e) {
+      console.error(e);
+    }
+    setIsGatherModalOpen(false);
+
+    if (timeframe === 'now') {
+      showToast('Configured: Plotted will gather future browsing from now on.');
+      return;
+    }
+
+    const items = getSampleHistoryForTimeframe(timeframe);
+    setHistoryItems(items);
+    const label = timeframe === 'week' ? 'Last Week' : timeframe === 'month' ? 'Last Month' : timeframe === 'year' ? 'Last Year' : 'All Time';
+    showToast(`Gathered ${items.length} signals from ${label}! Recalculating Taste DNA...`);
+
+    // Ingest into backend authoritative event bus
+    try {
+      await fetch('/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ events: items }),
+      });
+    } catch (e) {
+      console.warn('Backend sync failed, saved locally:', e);
+    }
+
+    // Trigger immediate AI taste analysis
+    handleRefreshTaste(items);
   };
 
   // Live Mood Recommendation Generator
@@ -247,6 +289,7 @@ export default function App() {
         pirateCount={pirateCount}
         isAnalyzing={isAnalyzing}
         onOpenCaptureModal={() => setIsCaptureModalOpen(true)}
+        onOpenGatherModal={() => setIsGatherModalOpen(true)}
         onRefreshTaste={handleRefreshTaste}
         onDownloadZip={handleDownloadZip}
       />
@@ -262,7 +305,7 @@ export default function App() {
               <span><strong>Backend Analysis Error:</strong> {apiError}. Existing taste profile preserved.</span>
             </div>
             <button
-              onClick={handleRefreshTaste}
+              onClick={() => handleRefreshTaste()}
               disabled={isAnalyzing}
               className="px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold flex items-center gap-1 shrink-0"
             >
@@ -288,6 +331,7 @@ export default function App() {
           <HistorySignalsView
             historyItems={historyItems}
             onOpenCaptureModal={() => setIsCaptureModalOpen(true)}
+            onOpenGatherModal={() => setIsGatherModalOpen(true)}
             onRemoveHistoryItem={handleRemoveHistoryItem}
             onClearHistory={handleClearHistory}
             onRefreshTaste={handleRefreshTaste}
@@ -304,6 +348,15 @@ export default function App() {
         )}
 
       </main>
+
+      {/* Gather Previous History Modal */}
+      <HistoryImportModal
+        isOpen={isGatherModalOpen}
+        onClose={() => setIsGatherModalOpen(false)}
+        onApplyTimeframe={handleApplyTimeframe}
+        currentTimeframe={currentTimeframe}
+        isProcessing={isAnalyzing}
+      />
 
       {/* Capture History Modal */}
       <CaptureModal
