@@ -208,6 +208,47 @@ Return a valid JSON object matching this schema:
       if (Array.isArray(parsedAi.recommendations) && parsedAi.recommendations.length > 0) {
         dynamicRecs = parsedAi.recommendations.map((rec: any, idx: number) => {
           const isSeries = rec.mediaType === 'series' || Boolean(rec.seasons) || /season|episodes|series/i.test(rec.runtime || '');
+          
+          // Deterministic score calculation: no Math.random() fallback
+          let matchScore: number;
+          if (typeof rec.matchScore === 'number' && rec.matchScore > 0) {
+            matchScore = Math.min(99, Math.max(50, Math.round(rec.matchScore)));
+          } else {
+            const mathResult = RankingService.calculateCandidateScore(
+              {
+                id: rec.id || `rec-${idx}`,
+                title: rec.title || '',
+                mediaType: isSeries ? 'series' : 'movie',
+                year: typeof rec.year === 'number' ? rec.year : 2022,
+                director: rec.director || '',
+                creator: rec.creator,
+                genres: Array.isArray(rec.genres) ? rec.genres : [],
+                themes: Array.isArray(rec.themes) ? rec.themes : [],
+                pacing: rec.pacing || '',
+                backdropGradient: '',
+                overview: rec.overview || '',
+                whereToWatch: Array.isArray(rec.whereToWatch) ? rec.whereToWatch : [],
+                isUndergroundGem: Boolean(rec.isUndergroundGem),
+                rating: rec.rating || '8.0/10',
+                runtime: rec.runtime || ''
+              },
+              userGenres,
+              userThemes,
+              userDirectors,
+              historyItems.map(i => i.title)
+            );
+            matchScore = mathResult.score;
+          }
+
+          // Trigger signals directly grounded in user's actual history
+          const fallbackTriggers = historyItems.slice(0, 2).map(item => {
+            const plat = item.type === 'youtube_shorts' ? 'YouTube Shorts' :
+                         item.type === 'youtube' ? 'YouTube' :
+                         item.type === 'search' ? 'Search' :
+                         item.type === 'pirate_stream' ? 'Stream Locker' : 'Browsing';
+            return `${plat}: ${item.title}`;
+          });
+
           return {
             id: rec.id || `rec-${Date.now()}-${idx}`,
             title: rec.title || "Cinema Recommendation",
@@ -218,29 +259,25 @@ Return a valid JSON object matching this schema:
             director: rec.director || rec.creator || "Acclaimed Director",
             genres: Array.isArray(rec.genres) ? rec.genres : ["Drama", "Thriller"],
             overview: rec.overview || "A standout narrative tailored to your viewing patterns.",
-            matchScore: typeof rec.matchScore === 'number' ? Math.min(99, Math.max(70, rec.matchScore)) : Math.floor(88 + Math.random() * 10),
+            matchScore,
             whyItMatched: rec.whyItMatched || "Directly matches the tone, creators, and subjects in your watch activity.",
             triggerSignals: Array.isArray(rec.triggerSignals) && rec.triggerSignals.length > 0 
               ? rec.triggerSignals 
-              : [
-                  shortsCount > 0 ? `YouTube Shorts: Scene edit watched` : `YouTube: Video essay analyzed`,
-                  streamCount > 0 ? `Stream Locker: Underground playback` : `Search: Discussion thread visited`
-                ],
+              : fallbackTriggers,
             mood: rec.mood || rec.genres?.[0] || 'Atmospheric',
             rating: rec.rating || '8.2/10 IMDb',
             runtime: rec.runtime || (isSeries ? '8 eps • 55m' : '115 min'),
-            whereToWatch: Array.isArray(rec.whereToWatch) && rec.whereToWatch.length > 0 
-              ? rec.whereToWatch 
-              : ["Netflix", "Max", "Prime Video"],
+            // Real platforms only: never invent arbitrary platforms
+            whereToWatch: Array.isArray(rec.whereToWatch) ? rec.whereToWatch : [],
             isUndergroundGem: Boolean(rec.isUndergroundGem)
           };
         });
       }
 
-      // If AI didn't return recommendations array, fall back to ranking candidates
+      // If AI didn't return recommendations array, fall back to ranking candidates from full catalog
       if (dynamicRecs.length === 0) {
         const behavioralSignals = historyItems.map(i => i.title);
-        const candidates = RankingService.getFilmRepository();
+        const candidates = RankingService.getContentRepository();
         dynamicRecs = candidates.map(cand => {
           const { score, breakdown } = RankingService.calculateCandidateScore(
             cand,
@@ -249,18 +286,16 @@ Return a valid JSON object matching this schema:
             userDirectors,
             behavioralSignals
           );
+          const userTriggers = historyItems.slice(0, 2).map(i => `${i.type === 'search' ? 'Search' : 'YouTube'}: ${i.title}`);
           return {
             ...cand,
             matchScore: score,
             scoreBreakdown: breakdown,
-            whyItMatched: `Matched based on ${breakdown.genreScore}% genre alignment and ${breakdown.behavioralScore}% signal correlation.`,
-            triggerSignals: [
-              shortsCount > 0 ? `YouTube Shorts: Film edit watched` : `YouTube: Video essay analyzed`,
-              `Search: Cinema inquiries`
-            ],
+            whyItMatched: `Matched based on ${breakdown.genreScore}% genre alignment and ${breakdown.behavioralScore}% behavioral signal correlation.`,
+            triggerSignals: userTriggers.length > 0 ? userTriggers : [`Browsing: ${cand.genres[0]} alignment`],
             mood: cand.genres[0] || 'Atmospheric'
           };
-        }).sort((a, b) => b.matchScore - a.matchScore);
+        }).sort((a, b) => b.matchScore - a.matchScore).slice(0, 6);
       }
 
       return {
@@ -289,18 +324,131 @@ Return a valid JSON object matching this schema:
     }
   }
 
-  static getFallbackProfile(historyItems: UserHistoryItem[]) {
-    const userGenres = [
-      { name: "Psychological Thriller", percentage: 38 },
-      { name: "Sci-Fi / Neo-Noir", percentage: 28 },
-      { name: "Cerebral Mystery", percentage: 20 },
-      { name: "Dark Drama", percentage: 14 }
+  /**
+   * Dynamically extracts Taste DNA from user signals without any hardcoded genres or directors
+   */
+  static extractDynamicTasteDnaFromSignals(historyItems: UserHistoryItem[]) {
+    const allText = historyItems.map(i => `${i.title} ${i.channel || ''} ${i.query || ''}`).join(' ').toLowerCase();
+
+    // Keyword detection dictionaries
+    const genreMatchers: Record<string, RegExp> = {
+      "Anime & Animation": /\b(anime|manga|ghibli|miyazaki|titan|otaku|shinkai|jujutsu|naruto|animation|evangelion|akira|studio ghibli)\b/i,
+      "Sci-Fi & Speculative": /\b(scifi|sci-fi|space|interstellar|black hole|physics|cyberpunk|time travel|quantum|dark|severance|galaxy|alien|devs|cosmos)\b/i,
+      "Psychological Thriller": /\b(thriller|mystery|psychological|plot twist|mindfuck|unreliable|puzzle|fincher|villeneuve|nolan|obsession|paranoia)\b/i,
+      "Crime & Procedural": /\b(crime|detective|investigation|procedural|serial killer|police|murder|fbi|true detective|zodiac)\b/i,
+      "Dark Fantasy & Horror": /\b(horror|dread|witch|demon|creepy|supernatural|hereditary|dark fantasy|monsters|gothic)\b/i,
+      "Prestige Drama": /\b(drama|character study|hbo|tragedy|emmy|critique|breakdown|chernobyl|family trauma)\b/i
+    };
+
+    const genreScores: Record<string, number> = {};
+    for (const [genre, regex] of Object.entries(genreMatchers)) {
+      const matches = (allText.match(new RegExp(regex.source, 'gi')) || []).length;
+      if (matches > 0) {
+        genreScores[genre] = matches;
+      }
+    }
+
+    // Default balanced genres if no specific keywords were detected
+    let detectedGenres = Object.entries(genreScores)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name]) => name);
+
+    if (detectedGenres.length === 0) {
+      detectedGenres = ["Cerebral Drama", "Speculative Cinema", "Psychological Mystery", "Atmospheric Narrative"];
+    }
+
+    // Allocate percentages totaling 100%
+    const weights = [42, 30, 18, 10];
+    const userGenres = detectedGenres.slice(0, 4).map((name, idx) => ({
+      name,
+      percentage: weights[idx] || 10
+    }));
+
+    // Dynamic themes extracted from signals
+    const themePool = [
+      { trigger: /time|loop|quantum|timeline|paradox/i, theme: "Temporal Paradoxes & Determinism" },
+      { trigger: /nature|forest|environment|spirit|ghibli/i, theme: "Nature vs Industrial Progress" },
+      { trigger: /ending|twist|mystery|puzzle|mind/i, theme: "Unreliable Reality & Narrative Deconstruction" },
+      { trigger: /corporate|control|severance|dystopia/i, theme: "Corporate Surveillance & Institutional Control" },
+      { trigger: /war|titan|conflict|survival|dark/i, theme: "Existential Stakes & Moral Ambiguity" },
+      { trigger: /identity|memory|clone|doppel/i, theme: "Fractured Identity & Memory" }
     ];
-    const userThemes = ["Unreliable Narrators", "Dystopian Megastructures", "Existential Stakes"];
-    const userDirectors = ["Denis Villeneuve", "Christopher Nolan", "David Fincher"];
+
+    const userThemes = themePool
+      .filter(t => t.trigger.test(allText))
+      .map(t => t.theme);
+
+    if (userThemes.length === 0) {
+      userThemes.push("Atmospheric World-Building", "Complex Narrative Structures", "Existential Stakes");
+    }
+
+    // Dynamic directors/creators extracted from signals
+    const recognizedDirectors = [
+      "Hayao Miyazaki", "Christopher Nolan", "Denis Villeneuve", "David Fincher", 
+      "Baran bo Odar", "Alex Garland", "Satoshi Kon", "Park Chan-wook", 
+      "Bong Joon-ho", "Kiyoshi Kurosawa", "Ari Aster", "Ben Stiller", "Hajime Isayama"
+    ];
+
+    const userDirectors = recognizedDirectors.filter(d => 
+      allText.includes(d.toLowerCase()) || 
+      allText.includes(d.split(' ')[1]?.toLowerCase() || '---')
+    );
+
+    if (userDirectors.length === 0 && historyItems.length > 0) {
+      const topChannel = historyItems.find(i => i.channel)?.channel;
+      if (topChannel) userDirectors.push(topChannel);
+    }
+    if (userDirectors.length === 0) {
+      userDirectors.push("Visionary Auteur Directors");
+    }
+
+    // Evocative Persona Archetype
+    const dominant = userGenres[0]?.name || "Cinematic";
+    let tasteArchetype = `The ${dominant.replace('&', '& The')} Explorer`;
+    if (dominant.includes("Anime")) tasteArchetype = "The Mythic Animation & Lore Connoisseur";
+    else if (dominant.includes("Sci-Fi")) tasteArchetype = "The Speculative Deep-Space & Temporal Mind";
+    else if (dominant.includes("Crime") || dominant.includes("Thriller")) tasteArchetype = "The Existential Puzzle & Neo-Noir Analyst";
+    else if (dominant.includes("Horror")) tasteArchetype = "The Atmospheric Dread & Psychological Seeker";
+
+    return {
+      tasteArchetype,
+      archetypeDescription: `Driven by an appetite for ${userGenres.slice(0, 2).map(g => g.name.toLowerCase()).join(' and ')}, with an affinity for ${userThemes[0]?.toLowerCase() || 'deep storytelling'}.`,
+      tasteDna: {
+        genres: userGenres,
+        themes: userThemes.slice(0, 4),
+        directors: userDirectors.slice(0, 3),
+        pacingPreference: "Methodical narrative pacing with high emotional resonance",
+        visualStyle: "Atmospheric, director-driven aesthetic"
+      }
+    };
+  }
+
+  /**
+   * Deterministic fallback that ranks real catalog candidates using dynamic user features
+   * (Zero hardcoded recommendations, zero hardcoded user preferences)
+   */
+  static getFallbackProfile(historyItems: UserHistoryItem[]) {
+    // 1. Dynamically extract Taste DNA from user's actual browsing history
+    const dynamicProfile = this.extractDynamicTasteDnaFromSignals(historyItems);
+    const { userGenres, userThemes, userDirectors } = {
+      userGenres: dynamicProfile.tasteDna.genres,
+      userThemes: dynamicProfile.tasteDna.themes,
+      userDirectors: dynamicProfile.tasteDna.directors
+    };
+
     const behavioralSignals = historyItems.map(i => i.title);
 
-    const candidates = RankingService.getFilmRepository();
+    // 2. Real trigger signals directly citing what user actually watched/searched
+    const triggerSignals = historyItems.slice(0, 3).map(item => {
+      const plat = item.type === 'youtube_shorts' ? 'YouTube Shorts' :
+                   item.type === 'youtube' ? 'YouTube' :
+                   item.type === 'search' ? 'Search' :
+                   item.type === 'pirate_stream' ? 'Stream Locker' : 'Browsing';
+      return `${plat}: ${item.title}`;
+    });
+
+    // 3. Score all candidates in full catalog (movies and TV series across all genres)
+    const candidates = RankingService.getContentRepository();
     const scoredRecs = candidates.map((cand) => {
       const { score, breakdown } = RankingService.calculateCandidateScore(
         cand,
@@ -314,28 +462,24 @@ Return a valid JSON object matching this schema:
         ...cand,
         matchScore: score,
         scoreBreakdown: breakdown,
-        whyItMatched: `Calculated ${score}% match from ${breakdown.genreScore}% genre alignment and ${breakdown.themeScore}% theme overlap.`,
-        triggerSignals: ["YouTube: Video essay breakdown", "Search: Shocking plot twist movies"],
+        whyItMatched: `Matched with ${breakdown.genreScore}% genre alignment (${cand.genres[0]}) and ${breakdown.behavioralScore}% history correlation.`,
+        triggerSignals: triggerSignals.length > 0 ? triggerSignals : [`History signal: ${cand.genres[0]} affinity`],
         mood: cand.genres[0] || 'Atmospheric'
       };
-    }).sort((a, b) => b.matchScore - a.matchScore);
+    })
+    .sort((a, b) => b.matchScore - a.matchScore)
+    .slice(0, 6);
 
     return {
-      tasteArchetype: "The Existential Puzzle-Solver & Neo-Noir Seeker",
-      archetypeDescription: "You gravitate towards mind-bending narratives with unreliable narrators, high existential tension, and meticulously framed cinematography.",
-      tasteDna: {
-        genres: userGenres,
-        themes: userThemes,
-        directors: userDirectors,
-        pacingPreference: "Methodical slow-burn with explosive third act",
-        visualStyle: "High-contrast chiaroscuro, desaturated brutalist palettes"
-      },
+      tasteArchetype: dynamicProfile.tasteArchetype,
+      archetypeDescription: dynamicProfile.archetypeDescription,
+      tasteDna: dynamicProfile.tasteDna,
       capturedSignalsSummary: {
         totalEvents: historyItems.length,
-        youtubeHighlights: ["Watched tension breakdowns and video essays"],
-        searchHighlights: ["Searched for plot twist thrillers on Reddit"],
-        pirateStreamHighlights: ["Captured underground streams on unindexed hosts"],
-        hiddenAffinitiesFound: "Your viewing shows an appetite for complex, non-linear stories."
+        youtubeHighlights: historyItems.filter(i => i.type.includes('youtube')).slice(0, 3).map(i => i.title),
+        searchHighlights: historyItems.filter(i => i.type === 'search').slice(0, 3).map(i => i.title),
+        pirateStreamHighlights: historyItems.filter(i => i.type === 'pirate_stream').slice(0, 2).map(i => i.title),
+        hiddenAffinitiesFound: `Behavioral signals reflect clear engagement with ${userGenres[0]?.name || 'curated cinema'}.`
       },
       recommendations: scoredRecs
     };

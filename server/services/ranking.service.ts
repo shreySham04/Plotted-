@@ -1,20 +1,8 @@
-export interface CandidateFilm {
-  id: string;
-  title: string;
-  year: number;
-  director: string;
-  genres: string[];
-  themes: string[];
-  pacing: string;
-  backdropGradient: string;
-  overview: string;
-  whereToWatch: string[];
-  isUndergroundGem: boolean;
-  rating: string;
-  runtime: string;
-}
+import { CandidateContent, CatalogService } from './catalog.service';
 
-export interface ScoredRecommendation extends CandidateFilm {
+export type CandidateFilm = CandidateContent;
+
+export interface ScoredRecommendation extends CandidateContent {
   matchScore: number;
   scoreBreakdown: {
     genreScore: number;
@@ -115,12 +103,16 @@ export class RankingService {
     }
     const themeScore = Math.min(100, Math.round((themeMatches / Math.max(userThemes.length, 1)) * 100));
 
-    // 3. Director affinity (0 to 100)
-    const hasDirector = userDirectors.some(ud => ud.toLowerCase() === candidate.director.toLowerCase());
-    const directorScore = hasDirector ? 98 : 35; // True differentiation if director is in user's affinity list
+    // 3. Director/Creator affinity (0 to 100)
+    const hasDirectorOrCreator = userDirectors.some(ud => {
+      const matchDir = ud.toLowerCase() === candidate.director.toLowerCase();
+      const matchCreator = candidate.creator && ud.toLowerCase() === candidate.creator.toLowerCase();
+      return matchDir || matchCreator;
+    });
+    const directorScore = hasDirectorOrCreator ? 98 : 35; // True differentiation if director/creator is in user's affinity list
 
     // 4. Behavioral history signal correlation via vector cosine similarity (0 to 100)
-    const candidateText = `${candidate.title} ${candidate.director} ${candidate.genres.join(' ')} ${candidate.themes.join(' ')} ${candidate.overview}`;
+    const candidateText = `${candidate.title} ${candidate.director} ${candidate.creator || ''} ${candidate.genres.join(' ')} ${candidate.themes.join(' ')} ${candidate.overview}`;
     const userSignalsText = behavioralSignals.join(' ');
     const cosineSim = this.computeVectorSimilarity(candidateText, userSignalsText);
     const behavioralScore = Math.min(100, Math.round(cosineSim * 120)); // scale cosine (0..0.8) to (0..100)
@@ -138,7 +130,7 @@ export class RankingService {
       contextScore = fitsMood ? 98 : 30;
     }
 
-    // Weighted composite formula (No artificial minimum clamp; true natural score range)
+    // Weighted composite formula (Deterministic multi-feature vector)
     const rawScore = 
       (0.30 * genreScore) +
       (0.20 * themeScore) +
@@ -163,100 +155,16 @@ export class RankingService {
   }
 
   /**
-   * Film repository across psychological thriller, neo-noir, sci-fi, and international cult cinema
+   * Retrieves full catalog across movies and television series
    */
-  static getFilmRepository(): CandidateFilm[] {
-    return [
-      {
-        id: "cand-1",
-        title: "Incendies",
-        year: 2010,
-        director: "Denis Villeneuve",
-        genres: ["Mystery", "Drama", "Psychological Thriller"],
-        themes: ["Unreliable Narrators", "Family Trauma", "Shocking Revelations", "Existential Stakes"],
-        pacing: "Methodical slow-burn with explosive third act",
-        backdropGradient: "from-amber-950 via-stone-900 to-black",
-        overview: "Twin siblings journey to the Middle East to fulfill their deceased mother's final instructions, uncovering an unimaginable family secret.",
-        whereToWatch: ["Prime Video", "Apple TV", "Kanopy"],
-        isUndergroundGem: false,
-        rating: "8.3/10 IMDb",
-        runtime: "131 min"
-      },
-      {
-        id: "cand-2",
-        title: "Cure (Kyua)",
-        year: 1997,
-        director: "Kiyoshi Kurosawa",
-        genres: ["Psychological Horror", "Crime", "Mystery"],
-        themes: ["Hypnotic Suggestion", "Memory Distortion", "Psychological Dread", "Existential Identity"],
-        pacing: "Atmospheric, creeping dread",
-        backdropGradient: "from-emerald-950 via-slate-900 to-black",
-        overview: "A series of grisly murders is carried out by ordinary citizens with zero memory of their crimes. A Tokyo detective tracks an enigmatic amnesiac wanderer.",
-        whereToWatch: ["Criterion Channel", "MUBI", "Tubi (Free)"],
-        isUndergroundGem: true,
-        rating: "7.8/10 IMDb",
-        runtime: "111 min"
-      },
-      {
-        id: "cand-3",
-        title: "Coherence",
-        year: 2013,
-        director: "James Ward Byrkit",
-        genres: ["Sci-Fi", "Mystery", "Psychological Thriller"],
-        themes: ["Quantum Multiverse", "Paranoia", "Doppelgangers", "Low-budget Mindfuck"],
-        pacing: "Rapidly escalating chamber piece",
-        backdropGradient: "from-cyan-950 via-slate-900 to-black",
-        overview: "Eight friends at a dinner party experience reality-fracturing anomalies as a passing comet splinters their house across infinite parallel timelines.",
-        whereToWatch: ["Prime Video", "Pluto TV (Free)", "Tubi (Free)"],
-        isUndergroundGem: true,
-        rating: "7.2/10 IMDb",
-        runtime: "89 min"
-      },
-      {
-        id: "cand-4",
-        title: "Decision to Leave",
-        year: 2022,
-        director: "Park Chan-wook",
-        genres: ["Neo-Noir", "Mystery", "Romance"],
-        themes: ["Obsessive Investigation", "Ambiguous Guilt", "Poetic Chiaroscuro", "Insomnia"],
-        pacing: "Meticulous, lyrical detective procedural",
-        backdropGradient: "from-indigo-950 via-slate-900 to-black",
-        overview: "An insomniac detective investigating a climber's fall develops a dangerously consuming infatuation with the dead man's mysterious widow.",
-        whereToWatch: ["MUBI", "Apple TV"],
-        isUndergroundGem: false,
-        rating: "7.3/10 IMDb",
-        runtime: "138 min"
-      },
-      {
-        id: "cand-5",
-        title: "Burning (Beoning)",
-        year: 2018,
-        director: "Lee Chang-dong",
-        genres: ["Mystery", "Drama", "Psychological Thriller"],
-        themes: ["Class Envy", "Uncertain Truth", "Murakami Aesthetics", "Smoldering Menace"],
-        pacing: "Deliberate slow-burn with lingering mystery",
-        backdropGradient: "from-rose-950 via-neutral-900 to-black",
-        overview: "An aspiring novelist reconnects with a childhood acquaintance who returns from trip abroad with an enigmatic Gatsby-like figure possessing a sinister hobby.",
-        whereToWatch: ["Prime Video", "Kanopy", "Tubi (Free)"],
-        isUndergroundGem: true,
-        rating: "7.5/10 IMDb",
-        runtime: "148 min"
-      },
-      {
-        id: "cand-6",
-        title: "Memories of Murder",
-        year: 2003,
-        director: "Bong Joon-ho",
-        genres: ["Crime", "Drama", "Mystery"],
-        themes: ["Unsolved Mystery", "Police Incompetence", "Obsessive Decay", "Historical Turmoil"],
-        pacing: "Gripping procedural blending grim satire and tension",
-        backdropGradient: "from-amber-900 via-neutral-900 to-black",
-        overview: "Two unequipped rural detectives and a metropolitan investigator struggle to catch Korea's first documented serial killer in 1986.",
-        whereToWatch: ["Criterion Channel", "Prime Video", "Hulu"],
-        isUndergroundGem: false,
-        rating: "8.1/10 IMDb",
-        runtime: "132 min"
-      }
-    ];
+  static getContentRepository(): CandidateContent[] {
+    return CatalogService.getFullCatalog();
+  }
+
+  /**
+   * Backwards-compatible alias for getContentRepository
+   */
+  static getFilmRepository(): CandidateContent[] {
+    return this.getContentRepository();
   }
 }

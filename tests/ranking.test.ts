@@ -20,6 +20,7 @@ describe('RankingService', () => {
     const candidate = {
       id: 'cand-1',
       title: 'Incendies',
+      mediaType: 'movie' as const,
       year: 2010,
       director: 'Denis Villeneuve',
       genres: ['Mystery', 'Drama', 'Psychological Thriller'],
@@ -60,6 +61,7 @@ describe('RankingService', () => {
     const mismatchedCandidate = {
       id: 'cand-mismatch',
       title: 'Lighthearted Romcom',
+      mediaType: 'movie' as const,
       year: 2023,
       director: 'Unknown Director',
       genres: ['Romantic Comedy'],
